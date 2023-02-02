@@ -7,10 +7,11 @@ export async function appRoutes(app: FastifyInstance) {
   app.post("/habits", async (request) => {
     const createHabitBody = z.object({
       title: z.string(),
-      weekDays: z.array(z.number().min(0).max(6))
+      weekDays: z.array(z.number().min(0).max(6)),
+      user_id: z.string()
     });
 
-    const { title, weekDays } = createHabitBody.parse(request.body);
+    const { title, weekDays, user_id } = createHabitBody.parse(request.body);
 
     const today = dayjs().startOf("day").toDate();
 
@@ -18,6 +19,7 @@ export async function appRoutes(app: FastifyInstance) {
       data: {
         title,
         created_at: today,
+        user_id,
         weekDays: {
           create: weekDays.map((weekDay) => {
             return {
@@ -31,10 +33,11 @@ export async function appRoutes(app: FastifyInstance) {
 
   app.get("/day", async (request) => {
     const getDayParams = z.object({
-      date: z.coerce.date()
+      date: z.coerce.date(),
+      user_id: z.string()
     });
 
-    const { date } = getDayParams.parse(request.query);
+    const { date, user_id } = getDayParams.parse(request.query);
 
     const parsedDate = dayjs(date).startOf("day");
     const weekDay = parsedDate.get("day");
@@ -44,6 +47,7 @@ export async function appRoutes(app: FastifyInstance) {
         created_at: {
           lte: date
         },
+        user_id,
         weekDays: {
           some: {
             week_day: weekDay
@@ -54,7 +58,12 @@ export async function appRoutes(app: FastifyInstance) {
 
     const day = await prisma.day.findFirst({
       where: {
-        date: parsedDate.toDate()
+        date: parsedDate.toDate(),
+        dayHabits: {
+          some: {
+            user_id
+          }
+        }
       },
       include: {
         dayHabits: true
@@ -72,12 +81,13 @@ export async function appRoutes(app: FastifyInstance) {
     };
   });
 
-  app.patch("/habits/:id/toggle", async (request) => {
+  app.patch("/habits/:id/toggle/:user_id", async (request) => {
     const toggleHabitParams = z.object({
-      id: z.string().uuid()
+      id: z.string().uuid(),
+      user_id: z.string()
     });
 
-    const { id } = toggleHabitParams.parse(request.params);
+    const { id, user_id } = toggleHabitParams.parse(request.params);
 
     const today = dayjs().startOf("day").toDate();
 
@@ -97,9 +107,10 @@ export async function appRoutes(app: FastifyInstance) {
 
     const dayHabit = await prisma.dayHabit.findUnique({
       where: {
-        day_id_habit_id: {
+        day_id_habit_id_user_id: {
           day_id: day.id,
-          habit_id: id
+          habit_id: id,
+          user_id
         }
       }
     });
@@ -114,7 +125,8 @@ export async function appRoutes(app: FastifyInstance) {
       await prisma.dayHabit.create({
         data: {
           day_id: day.id,
-          habit_id: id
+          habit_id: id,
+          user_id
         }
       });
     }

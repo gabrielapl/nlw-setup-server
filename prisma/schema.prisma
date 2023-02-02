@@ -14,6 +14,7 @@ model Habit {
   id         String   @id @default(uuid())
   title      String
   created_at DateTime
+  user_id    String
 
   dayHabits DayHabit[]
   weekDays  HabitWeekDays[]
@@ -48,10 +49,11 @@ model DayHabit {
 
   day_id   String
   habit_id String
+  user_id  String
 
   day   Day   @relation(fields: [day_id], references: [id])
   habit Habit @relation(fields: [habit_id], references: [id])
 
-  @@unique([day_id, habit_id])
+  @@unique([day_id, habit_id, user_id])
   @@map("day_habits")
 }

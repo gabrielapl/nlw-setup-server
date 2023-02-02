@@ -11,7 +11,11 @@ const secondHabitCreationDate = new Date("2023-01-03T03:00:00.000");
 const thirdHabitId = "fa1a1bcf-3d87-4626-8c0d-d7fd1255ac00";
 const thirdHabitCreationDate = new Date("2023-01-08T03:00:00.000");
 
+const user_id = "Vt3cnOt2yJV2FFxfBzvkuE325sj1";
+
 async function run() {
+  await prisma.dayHabit.deleteMany();
+  await prisma.habitWeekDays.deleteMany();
   await prisma.habit.deleteMany();
   await prisma.day.deleteMany();
 
@@ -23,6 +27,7 @@ async function run() {
       data: {
         id: firstHabitId,
         title: "Beber 2L água",
+        user_id,
         created_at: firstHabitCreationDate,
         weekDays: {
           create: [{ week_day: 1 }, { week_day: 2 }, { week_day: 3 }]
@@ -33,6 +38,7 @@ async function run() {
     prisma.habit.create({
       data: {
         id: secondHabitId,
+        user_id,
         title: "Exercitar",
         created_at: secondHabitCreationDate,
         weekDays: {
@@ -45,6 +51,7 @@ async function run() {
       data: {
         id: thirdHabitId,
         title: "Dormir 8h",
+        user_id,
         created_at: thirdHabitCreationDate,
         weekDays: {
           create: [
@@ -69,7 +76,8 @@ async function run() {
         date: new Date("2023-01-02T03:00:00.000z"),
         dayHabits: {
           create: {
-            habit_id: firstHabitId
+            habit_id: firstHabitId,
+            user_id
           }
         }
       }
@@ -84,7 +92,8 @@ async function run() {
         date: new Date("2023-01-06T03:00:00.000z"),
         dayHabits: {
           create: {
-            habit_id: firstHabitId
+            habit_id: firstHabitId,
+            user_id
           }
         }
       }
@@ -98,7 +107,10 @@ async function run() {
         /** Wednesday */
         date: new Date("2023-01-04T03:00:00.000z"),
         dayHabits: {
-          create: [{ habit_id: firstHabitId }, { habit_id: secondHabitId }]
+          create: [
+            { habit_id: firstHabitId, user_id },
+            { habit_id: secondHabitId, user_id }
+          ]
         }
       }
     })
