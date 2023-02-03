@@ -47,7 +47,6 @@ export async function appRoutes(app: FastifyInstance) {
         created_at: {
           lte: date
         },
-        user_id,
         weekDays: {
           some: {
             week_day: weekDay
@@ -60,7 +59,7 @@ export async function appRoutes(app: FastifyInstance) {
       where: {
         date: parsedDate.toDate(),
         dayHabits: {
-          some: {
+          every: {
             user_id
           }
         }
@@ -142,6 +141,7 @@ export async function appRoutes(app: FastifyInstance) {
             cast(count(*) as float)
           FROM day_habits DH
           WHERE DH.day_id = D.id
+          AND  DH.user_id = "Vt3cnOt2yJV2FFxfBzvkuE325sj1"
         ) as completed,
         (
           SELECT
@@ -151,9 +151,12 @@ export async function appRoutes(app: FastifyInstance) {
             ON H.id = HDW.habit_id
           WHERE
             HDW.week_day = cast(strftime('%w', D.date/1000.0, 'unixepoch') as int)
-            AND H.created_at <= D.date
+            AND H.created_at <= D.date AND H.user_id = "Vt3cnOt2yJV2FFxfBzvkuE325sj1"
         ) as amount
-      FROM days D
+      FROM days D 
+      INNER JOIN day_habits DH on DH.day_id = D.id  
+      WHERE DH.user_id = "Vt3cnOt2yJV2FFxfBzvkuE325sj1" 
+      GROUP BY d.id
     `;
 
     return summary;
